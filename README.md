@@ -1,2 +1,2 @@
-# webtritAPI
-API for Webtrit
+# Econet Call Home Provisioning API
+API for Econet
