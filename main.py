@@ -1,4 +1,4 @@
-# WebTrit API
+# Econet API
 
 from fastapi import HTTPException, status, Security, FastAPI, Depends, Query, Request, Response
 from fastapi.security import APIKeyHeader
@@ -31,12 +31,12 @@ tags_metadata = [
 ]
 
 description = """
-Webtrit Provisioning API
+Econet Call Home Provisioning API
 """
 
 app = FastAPI(
     root_path=config.api_root_path,
-    title="WebTrit Provisioning API",
+    title="Econet Call Home Provisioning API",
     description=description,
     version="0.0.1",
     contact={
