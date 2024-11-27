@@ -1,0 +1,2 @@
+database_url = 'mysql+pymysql://username:password@localhost/opensips'
+log_file = 'api.log'
