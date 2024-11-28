@@ -29,5 +29,5 @@ class Groups(Base) :
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(64), nullable=False)
     domain = Column(String(64), nullable=False)
-    grp = Column(String(64), nullable=False)
+    state = Column('grp' ,String(64), nullable=False)
     last_modified = Column(String(64), nullable=False)

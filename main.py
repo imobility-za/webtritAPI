@@ -90,13 +90,13 @@ def list_subscribers(
          tags=["Subscribers"])
 def get_subscriber(
         request: Request,
-        skip: Annotated[int, Query(ge=0)] = 0,
-        limit: Annotated[int, Query(le=100)] = 10,
+        username: str,
         api_key: schemas.AuthResponse = Security(get_api_key),
         db: Session = Depends(get_db)) :
     """ Method to get subscriber"""
     logger.info(f"new request for {request.url.path}, query: {request.query_params} src_ip: {request.client.host}")
-    subscribers = crud.get_subscribers(db, skip=skip, limit=limit)
+    subscribers = crud.get_subscriber(db, username = username)
+    # TODO if no results retuen 404
     return subscribers
 
 @app.post("/subscriber",
@@ -120,7 +120,7 @@ def add_subscriber(
                                  subscriber_info.username,
                                  subscriber_info.password,
                                  subscriber_info.email_address,
-                                 subscriber_info.enabled
+                                 subscriber_info.state
                                  )
     logger.info(f"sending response")
     return "Success"
@@ -146,7 +146,7 @@ def delete_subscriber(
     logger.info(f"sending response")
     return "Success"
 
-@app.put("/subscriber/{username}",
+@app.patch("/subscriber/{username}",
           status_code=status.HTTP_204_NO_CONTENT,
           # response_model=schemas.ValidationCreateResponse,
           tags=["Subscribers"],
@@ -156,6 +156,7 @@ def delete_subscriber(
 def update_subscriber(
         request: Request,
         username: str,
+        subscriberInfo: schemas.SubscriberUpdate,
         api_key: schemas.AuthResponse = Security(get_api_key),
         db: Session = Depends(get_db)
 ) :
@@ -163,6 +164,6 @@ def update_subscriber(
     logger.info(
         f"new request for DELETE {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
     # TODO Validate delete
-    crud.delete_subscriber(db, username)
+    crud.update_subscriber(db, username, subscriberInfo)
     logger.info(f"sending response")
     return "Success"
