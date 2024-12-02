@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 from enum import Enum
 
@@ -14,12 +14,12 @@ class AuthResponse(BaseModel) :
 class Subscriber(BaseModel) :
     username: str
     password: str
-    email_address: Optional[str]
+    email_address: EmailStr
     state: SubscriberState
 
 class SubscriberUpdate(BaseModel) :
     password: Optional[str] | None = None
-    email_address: Optional[str] | None = None
+    email_address: Optional[EmailStr] | None = None
     state: Optional[SubscriberState] | None = None
 
 class Group(BaseModel) :
@@ -33,3 +33,7 @@ class SubscriberList(BaseModel) :
 
 class DependancyError(BaseModel) :
     detail: str
+
+
+class NoSubscriberError(BaseModel) :
+    detail: str = 'no subscriber found'

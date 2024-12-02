@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import insert, and_, delete, values, update
 from sqlalchemy.orm.sync import update
 
+import config
 # Local imports
 import models
 import schemas
@@ -40,7 +41,9 @@ def get_subscriber(db: Session, username: str) :
         .filter(models.Subscriber.username == username)
         .all()
     )
-    return subscriber
+    if not subscriber:
+        return None
+    return subscriber[0]
 
 
 def delete_subscriber(db: Session, username: str) :
@@ -52,12 +55,12 @@ def delete_subscriber(db: Session, username: str) :
 
 def add_subscriber(db: Session, username: str, password: str, email_address: str, state: schemas.SubscriberState) :
     db.execute(insert(Groups).values(username=username,
-                                     domain="105.29.88.68",
+                                     domain=config.domain,
                                      state=state
                                      ))
     subscriber = db.execute(insert(Subscriber).values(username=username,
                                                       password=password,
-                                                      domain="105.29.88.68",
+                                                      domain=config.domain,
                                                       email_address=email_address
                                                       ))
     db.commit()
@@ -85,3 +88,15 @@ def update_subscriber(db: Session, username: str, subscriberinfo: schemas.Subscr
 def validate_auth_key(db: Session, authkey: schemas.AuthResponse) :
     keyinfo = db.query(models.Users).filter(models.Users.api_key == authkey).first()
     return keyinfo
+
+def validate_subscriber(db: Session, username: str) :
+    subscriber = (
+        db.query(models.Subscriber)
+        .with_entities(models.Subscriber.username, models.Subscriber.email_address, models.Groups.state)
+        .join(Groups, and_(models.Subscriber.username == models.Groups.username), isouter=True)
+        .filter(models.Subscriber.username == username)
+        .all()
+    )
+    if not subscriber:
+        return False
+    return True

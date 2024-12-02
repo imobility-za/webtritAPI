@@ -8,7 +8,7 @@ from asgi_correlation_id import CorrelationIdMiddleware
 
 import config
 import crud
-# import opensips
+import opensips
 import models
 import schemas
 from logs import logger
@@ -85,9 +85,13 @@ def list_subscribers(
     subscribers = crud.get_subscribers(db, skip=skip, limit=limit)
     return subscribers
 
+
 @app.get("/subscriber/{username}",
-         response_model=List[schemas.SubscriberList],
-         tags=["Subscribers"])
+         response_model=schemas.SubscriberList,
+         tags=["Subscribers"],
+         responses={
+             404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
+         })
 def get_subscriber(
         request: Request,
         username: str,
@@ -95,9 +99,11 @@ def get_subscriber(
         db: Session = Depends(get_db)) :
     """ Method to get subscriber"""
     logger.info(f"new request for {request.url.path}, query: {request.query_params} src_ip: {request.client.host}")
-    subscribers = crud.get_subscriber(db, username = username)
-    # TODO if no results retuen 404
-    return subscribers
+    subscriber = crud.get_subscriber(db, username=username)
+    if subscriber is None :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
+    return subscriber
+
 
 @app.post("/subscriber",
           status_code=status.HTTP_201_CREATED,
@@ -125,13 +131,14 @@ def add_subscriber(
     logger.info(f"sending response")
     return "Success"
 
+
 @app.delete("/subscriber/{username}",
-          status_code=status.HTTP_204_NO_CONTENT,
-          # response_model=schemas.ValidationCreateResponse,
-          tags=["Subscribers"],
-          responses={
-              424 : { "model" : schemas.DependancyError, "description" : "Raised if dependencies aren't met" }
-          })
+            status_code=status.HTTP_204_NO_CONTENT,
+            # response_model=schemas.ValidationCreateResponse,
+            tags=["Subscribers"],
+            responses={
+                404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
+            })
 def delete_subscriber(
         request: Request,
         username: str,
@@ -141,18 +148,20 @@ def delete_subscriber(
     """Method for removiong a subscriber"""
     logger.info(
         f"new request for DELETE {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
-    # TODO Validate delete
+    t = crud.validate_subscriber(db, username)
+    if t is False:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
     crud.delete_subscriber(db, username)
     logger.info(f"sending response")
     return "Success"
 
+
 @app.patch("/subscriber/{username}",
-          status_code=status.HTTP_204_NO_CONTENT,
-          # response_model=schemas.ValidationCreateResponse,
-          tags=["Subscribers"],
-          responses={
-              424 : { "model" : schemas.DependancyError, "description" : "Raised if dependencies aren't met" }
-          })
+           status_code=status.HTTP_204_NO_CONTENT,
+           tags=["Subscribers"],
+            responses={
+                404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
+            })
 def update_subscriber(
         request: Request,
         username: str,
@@ -163,7 +172,9 @@ def update_subscriber(
     """Method for updating a subscriber"""
     logger.info(
         f"new request for DELETE {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
-    # TODO Validate delete
+    t = crud.validate_subscriber(db, username)
+    if t is False:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
     crud.update_subscriber(db, username, subscriberInfo)
     logger.info(f"sending response")
     return "Success"
