@@ -2,7 +2,6 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from enum import Enum
 
-
 class SubscriberState(str, Enum) :
     active= 'active'
     suspended= 'suspended'
@@ -33,7 +32,6 @@ class SubscriberList(BaseModel) :
 
 class DependancyError(BaseModel) :
     detail: str
-
 
 class NoSubscriberError(BaseModel) :
     detail: str = 'no subscriber found'

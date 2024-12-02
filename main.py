@@ -109,9 +109,7 @@ def get_subscriber(
           status_code=status.HTTP_201_CREATED,
           # response_model=schemas.ValidationCreateResponse,
           tags=["Subscribers"],
-          responses={
-              424 : { "model" : schemas.DependancyError, "description" : "Raised if dependencies aren't met" }
-          })
+          )
 def add_subscriber(
         request: Request,
         subscriber_info: schemas.Subscriber,
@@ -148,7 +146,7 @@ def delete_subscriber(
     logger.info(
         f"new request for DELETE {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
     t = crud.validate_subscriber(db, username)
-    if t is False:
+    if t is False :
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
     crud.delete_subscriber(db, username)
     logger.info(f"sending response")
@@ -158,9 +156,9 @@ def delete_subscriber(
 @app.patch("/subscriber/{username}",
            status_code=status.HTTP_204_NO_CONTENT,
            tags=["Subscribers"],
-            responses={
-                404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
-            })
+           responses={
+               404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
+           })
 def update_subscriber(
         request: Request,
         username: str,
@@ -172,7 +170,7 @@ def update_subscriber(
     logger.info(
         f"new request for DELETE {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
     t = crud.validate_subscriber(db, username)
-    if t is False:
+    if t is False :
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
     crud.update_subscriber(db, username, subscriberInfo)
     logger.info(f"sending response")
