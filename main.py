@@ -121,7 +121,6 @@ def add_subscriber(
     """Method for provisioning a new subscriber"""
     logger.info(
         f"new request for POST {request.url.path}, data:{{ {subscriber_info} }} src_ip: {request.client.host}")
-    # TODO Validate input
     insert = crud.add_subscriber(db,
                                  subscriber_info.username,
                                  subscriber_info.password,
