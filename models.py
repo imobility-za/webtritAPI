@@ -31,3 +31,11 @@ class Groups(Base) :
     domain = Column(String(64), nullable=False)
     state = Column('grp' ,String(64), nullable=False)
     last_modified = Column(String(64), nullable=False)
+
+class Subscriptions(Base) :
+    __tablename__ = 'dr_rules'
+    ruleid = Column(Integer, primary_key=True, index=True)
+    username = Column('groupid' ,String(64), nullable=False)
+    destination = Column('prefix' ,String(64), nullable=False)
+    state = Column('attrs' ,String(64), nullable=False)
+    expiry = Column('timerec' ,String(64), nullable=False)

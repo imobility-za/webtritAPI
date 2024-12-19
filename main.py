@@ -129,6 +129,30 @@ def add_subscriber(
     return "Success"
 
 
+@app.patch("/subscriber/{username}",
+           status_code=status.HTTP_204_NO_CONTENT,
+           tags=["Subscribers"],
+           responses={
+               404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
+           })
+def update_subscriber(
+        request: Request,
+        username: str,
+        subscriberInfo: schemas.SubscriberUpdate,
+        api_key: schemas.AuthResponse = Security(get_api_key),
+        db: Session = Depends(get_db)
+) :
+    """Method for updating a subscriber"""
+    logger.info(
+        f"new request for DELETE {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
+    t = crud.validate_subscriber(db, username)
+    if t is False :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
+    crud.update_subscriber(db, username, subscriberInfo)
+    logger.info(f"sending response")
+    return "Success"
+
+
 @app.delete("/subscriber/{username}",
             status_code=status.HTTP_204_NO_CONTENT,
             # response_model=schemas.ValidationCreateResponse,
@@ -153,25 +177,112 @@ def delete_subscriber(
     return "Success"
 
 
-@app.patch("/subscriber/{username}",
-           status_code=status.HTTP_204_NO_CONTENT,
-           tags=["Subscribers"],
-           responses={
-               404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
-           })
-def update_subscriber(
+@app.get("/subscriber/{username}/subscriptions",
+         response_model=List[schemas.Subscription],
+         tags=["Subscriptions"],
+         responses={
+             404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
+         })
+def list_subscriptions(
         request: Request,
         username: str,
-        subscriberInfo: schemas.SubscriberUpdate,
+        skip: Annotated[int, Query(ge=0)] = 0,
+        limit: Annotated[int, Query(le=100)] = 10,
+        api_key: schemas.AuthResponse = Security(get_api_key),
+        db: Session = Depends(get_db)) :
+    """ Method to get subscriber"""
+    logger.info(f"new request for {request.url.path}, query: {request.query_params} src_ip: {request.client.host}")
+    subscriber = crud.get_subscriber(db, username=username)
+    if subscriber is None :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
+    subscriptions = crud.get_subscriptions(db, username=username, skip=skip, limit=limit)
+    return subscriptions
+
+
+@app.post("/subscriber/{username}/subscription",
+          status_code=status.HTTP_201_CREATED,
+          tags=["Subscriptions"],
+          responses={
+              404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" },
+              409 : { "model" : schemas.GenericError, "description" : "Raised if duplicate subscription detected" }
+          }
+          )
+def add_subscription(
+        request: Request,
+        username: str,
+        subscription_info: schemas.SubscriptionAdd,
+        api_key: schemas.AuthResponse = Security(get_api_key),
+        db: Session = Depends(get_db)
+) :
+    """Method for provisioning a new subscriber"""
+    logger.info(
+        f"new request for POST {request.url.path}, data:{{ {subscription_info} }} src_ip: {request.client.host}")
+    subscriber = crud.get_subscriber(db, username=username)
+    if subscriber is None :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
+    subscription = crud.validate_subscription(db, username=username,
+                                              destination=subscription_info.destination)
+    if subscription :
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='subscription exists please use patch method')
+    crud.add_subscription(db,
+                          username=username,
+                          destination=subscription_info.destination,
+                          state=subscription_info.state,
+                          expiry=subscription_info.expiry
+                          )
+    logger.info(f"sending response")
+    return "Success"
+
+@app.patch("/subscriber/{username}/subscription/{destination}",
+           status_code=status.HTTP_204_NO_CONTENT,
+           tags=["Subscriptions"],
+           responses={
+               404 : { "model" : schemas.GenericError, "description" : "Raised if no subscriber/subscription is found" }
+           })
+def update_subscription(
+        request: Request,
+        username: str,
+        destination: str,
+        subscriptionInfo: schemas.SubscriptionUpdate,
         api_key: schemas.AuthResponse = Security(get_api_key),
         db: Session = Depends(get_db)
 ) :
     """Method for updating a subscriber"""
     logger.info(
-        f"new request for DELETE {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
-    t = crud.validate_subscriber(db, username)
-    if t is False :
+        f"new request for PATCH {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
+    subscriber = crud.validate_subscriber(db, username)
+    if subscriber is False :
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
-    crud.update_subscriber(db, username, subscriberInfo)
+    subscription = crud.validate_subscription(db, username, destination)
+    if subscription is False :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscription found')
+    crud.update_subscription(db, username, destination, subscriptionInfo)
+    logger.info(f"sending response")
+    return "Success"
+
+@app.delete("/subscriber/{username}/subscription/{destination}",
+            status_code=status.HTTP_204_NO_CONTENT,
+            # response_model=schemas.ValidationCreateResponse,
+            tags=["Subscriptions"],
+            responses={
+                404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber/subscription is found" }
+            })
+def delete_subscription(
+        request: Request,
+        username: str,
+        destination: str,
+        api_key: schemas.AuthResponse = Security(get_api_key),
+        db: Session = Depends(get_db)
+) :
+    """Method for removiong a subscriber"""
+    logger.info(
+        f"new request for DELETE {request.url.path}, data:{{ {username} }} src_ip: {request.client.host}")
+    subscriber = crud.validate_subscriber(db, username)
+    if subscriber is False :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
+    subscription = crud.validate_subscription(db, username, destination)
+    if subscription is False :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscription found')
+    crud.delete_subscription(db, username, destination)
     logger.info(f"sending response")
     return "Success"
