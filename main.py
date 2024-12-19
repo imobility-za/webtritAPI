@@ -86,7 +86,7 @@ def list_subscribers(
     return subscribers
 
 
-@app.get("/subscriber/{username}",
+@app.get("/subscribers/{username}",
          response_model=schemas.SubscriberList,
          tags=["Subscribers"],
          responses={
@@ -105,7 +105,7 @@ def get_subscriber(
     return subscriber
 
 
-@app.post("/subscriber",
+@app.post("/subscribers",
           status_code=status.HTTP_201_CREATED,
           # response_model=schemas.ValidationCreateResponse,
           tags=["Subscribers"],
@@ -129,7 +129,7 @@ def add_subscriber(
     return "Success"
 
 
-@app.patch("/subscriber/{username}",
+@app.patch("/subscribers/{username}",
            status_code=status.HTTP_204_NO_CONTENT,
            tags=["Subscribers"],
            responses={
@@ -153,7 +153,7 @@ def update_subscriber(
     return "Success"
 
 
-@app.delete("/subscriber/{username}",
+@app.delete("/subscribers/{username}",
             status_code=status.HTTP_204_NO_CONTENT,
             # response_model=schemas.ValidationCreateResponse,
             tags=["Subscribers"],
@@ -177,7 +177,7 @@ def delete_subscriber(
     return "Success"
 
 
-@app.get("/subscriber/{username}/subscriptions",
+@app.get("/subscribers/{username}/subscriptions",
          response_model=List[schemas.Subscription],
          tags=["Subscriptions"],
          responses={
@@ -199,7 +199,7 @@ def list_subscriptions(
     return subscriptions
 
 
-@app.post("/subscriber/{username}/subscription",
+@app.post("/subscribers/{username}/subscriptions",
           status_code=status.HTTP_201_CREATED,
           tags=["Subscriptions"],
           responses={
@@ -233,7 +233,7 @@ def add_subscription(
     logger.info(f"sending response")
     return "Success"
 
-@app.patch("/subscriber/{username}/subscription/{destination}",
+@app.patch("/subscribers/{username}/subscriptions/{destination}",
            status_code=status.HTTP_204_NO_CONTENT,
            tags=["Subscriptions"],
            responses={
@@ -260,7 +260,7 @@ def update_subscription(
     logger.info(f"sending response")
     return "Success"
 
-@app.delete("/subscriber/{username}/subscription/{destination}",
+@app.delete("/subscribers/{username}/subscriptions/{destination}",
             status_code=status.HTTP_204_NO_CONTENT,
             # response_model=schemas.ValidationCreateResponse,
             tags=["Subscriptions"],
