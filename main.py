@@ -228,7 +228,8 @@ def add_subscription(
                           username=username,
                           destination=subscription_info.destination,
                           state=subscription_info.state,
-                          expiry=subscription_info.expiry
+                          start_date=subscription_info.start_date,
+                          end_date=subscription_info.end_date
                           )
     logger.info(f"sending response")
     return "Success"

@@ -38,4 +38,4 @@ class Subscriptions(Base) :
     username = Column('groupid' ,String(64), nullable=False)
     destination = Column('prefix' ,String(64), nullable=False)
     state = Column('attrs' ,String(64), nullable=False)
-    expiry = Column('timerec' ,String(64), nullable=False)
+    active_period = Column('timerec' ,String(64), nullable=False)

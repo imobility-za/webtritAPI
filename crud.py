@@ -123,25 +123,26 @@ def get_subscriptions(db: Session, username, skip: int = 0, limit: int = 100) :
     subscriptions = (
         db.query(models.Subscriptions)
         .with_entities(models.Subscriptions.username, models.Subscriptions.destination, models.Subscriptions.state,
-                       models.Subscriptions.expiry)
+                       models.Subscriptions.active_period)
         .filter(models.Subscriptions.username == username)
         .offset(skip)
         .limit(limit)
         .all()
     )
-    ''' We have to decode the expiry dates back to ISO'''
+    ''' We have to decode the active_period dates back to ISO'''
     subscription_data = [dict(r._mapping) for r in subscriptions]
     for i, v in enumerate(subscription_data) :
-        subscription_data[i]['expiry'] = functions.timerec_to_expiry_datetime(str(subscription_data[i]['expiry']))
+        (subscription_data[i]['start_date'],
+         subscription_data[i]['end_date']) = functions.timerec_to_start_and_end_date(subscription_data[i]['active_period'])
     return subscription_data
 
 
-def add_subscription(db: Session, username: str, destination: str, state: schemas.SubscriptionState, expiry: datetime) :
-    expiry = functions.expiry_datetime_to_timerec(expiry)
+def add_subscription(db: Session, username: str, destination: str, state: schemas.SubscriptionState, start_date: datetime, end_date: datetime) :
+    active_period = functions.start_end_date_to_timerec(start_date,end_date)
     db.execute(insert(models.Subscriptions).values(username=username,
                                                    destination=destination,
                                                    state=state,
-                                                   expiry=expiry
+                                                   active_period=active_period
                                                    ))
     db.commit()
     return True
@@ -154,12 +155,11 @@ def update_subscription(db: Session, username: str, destination: str, subscripti
         .first()
     )
     subscription_data = subscriptionInfo.model_dump(exclude_unset=True)
+    subscription_data['active_period'] = functions.start_end_date_to_timerec(subscriptionInfo.start_date, subscriptionInfo.end_date)
+
     for key, value in subscription_data.items() :
-        if key == 'expiry' :
-            value = functions.expiry_datetime_to_timerec(value)
         setattr(subscription, key, value)
     db.commit()
-    (print(subscription_data))
 
 
 def delete_subscription(db: Session, username: str, destination: str) :
