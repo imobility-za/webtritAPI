@@ -78,15 +78,12 @@ def update_subscriber(db: Session, username: str, subscriberinfo: schemas.Subscr
         .filter(models.Subscriber.username == username)
         .first()
     )
-    print(subscriber.username)
     subscriber_data = subscriberinfo.model_dump(exclude_unset=True)
-    print(subscriber_data)
     for key, value in subscriber_data.items() :
         setattr(subscriber, key, value)
     if subscriberinfo.state :
         db.query(Groups).filter(Groups.username == username).update({ Groups.state : subscriberinfo.state })
     db.commit()
-    print(subscriber_data)
 
 
 def validate_auth_key(db: Session, authkey: schemas.AuthResponse) :
@@ -158,8 +155,8 @@ def update_subscription(db: Session, username: str, destination: str, subscripti
     if subscriptionInfo.end_date or subscriptionInfo.start_date:
         subscription_data['active_period'] = functions.start_end_date_to_timerec(subscriptionInfo.start_date, subscriptionInfo.end_date)
 
-        for key, value in subscription_data.items() :
-            setattr(subscription, key, value)
+    for key, value in subscription_data.items() :
+        setattr(subscription, key, value)
     db.commit()
 
 
