@@ -10,6 +10,7 @@ def dr_reload():
         r = requests.post(config.opensips_mi_url, data=json_data, headers=headers)
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='unable to connect to mi interface')
+    print(r.text)
     if r.json()['result'] != "OK" :
         return False
     return True
