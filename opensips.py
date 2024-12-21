@@ -3,7 +3,6 @@ import config
 from logs import logger
 from fastapi import HTTPException, status
 
-# Not needed for auth module will be needed in future for dynamic routing
 def dr_reload():
     headers = { 'Content-Type' : 'application/json' }
     json_data = f'{{"jsonrpc":"2.0","method":"dr_reload","id":10}}'

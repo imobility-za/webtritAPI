@@ -6,6 +6,7 @@ from typing import Annotated, List
 from sqlalchemy.orm import Session
 from asgi_correlation_id import CorrelationIdMiddleware
 
+# Local Imports
 import config
 import crud
 import opensips
@@ -14,21 +15,12 @@ import schemas
 from logs import logger
 from database import engine, SessionLocal
 
-
 def get_db() :
     db = SessionLocal()
     try :
         yield db
     finally :
         db.close()
-
-
-tags_metadata = [
-    {
-        "name" : "Users",
-        "description" : "Operations on Users",
-    },
-]
 
 description = """
 Econet Call Home Provisioning API
