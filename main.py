@@ -232,6 +232,8 @@ def add_subscription(
                           end_date=subscription_info.end_date
                           )
     logger.info(f"sending response")
+    if opensips.dr_reload() is False:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='unable to reload dr_rules')
     return "Success"
 
 @app.get("/subscribers/{username}/subscriptions/{destination}",
@@ -282,6 +284,10 @@ def update_subscription(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscription found')
     crud.update_subscription(db, username, destination, subscriptionInfo)
     logger.info(f"sending response")
+    if opensips.dr_reload() is False:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='unable to reload dr_rules')
+    if opensips.dr_reload() is False:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='unable to reload dr_rules')
     return "Success"
 
 @app.delete("/subscribers/{username}/subscriptions/{destination}",
@@ -309,4 +315,6 @@ def delete_subscription(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscription found')
     crud.delete_subscription(db, username, destination)
     logger.info(f"sending response")
+    if opensips.dr_reload() is False:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='unable to reload dr_rules')
     return "Success"

@@ -155,10 +155,11 @@ def update_subscription(db: Session, username: str, destination: str, subscripti
         .first()
     )
     subscription_data = subscriptionInfo.model_dump(exclude_unset=True)
-    subscription_data['active_period'] = functions.start_end_date_to_timerec(subscriptionInfo.start_date, subscriptionInfo.end_date)
+    if subscriptionInfo.end_date or subscriptionInfo.start_date:
+        subscription_data['active_period'] = functions.start_end_date_to_timerec(subscriptionInfo.start_date, subscriptionInfo.end_date)
 
-    for key, value in subscription_data.items() :
-        setattr(subscription, key, value)
+        for key, value in subscription_data.items() :
+            setattr(subscription, key, value)
     db.commit()
 
 
