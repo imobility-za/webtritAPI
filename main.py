@@ -234,6 +234,29 @@ def add_subscription(
     logger.info(f"sending response")
     return "Success"
 
+@app.get("/subscribers/{username}/subscriptions/{destination}",
+         response_model=schemas.Subscription,
+         tags=["Subscriptions"],
+         responses={
+             404 : { "model" : schemas.NoSubscriberError, "description" : "Raised if no subscriber is found" }
+         })
+def get_subscription(
+        request: Request,
+        username: str,
+        destination: str,
+        api_key: schemas.AuthResponse = Security(get_api_key),
+        db: Session = Depends(get_db)) :
+    """ Method to get subscriber"""
+    logger.info(f"new request for {request.url.path}, query: {request.query_params} src_ip: {request.client.host}")
+    subscriber = crud.get_subscriber(db, username=username)
+    if subscriber is None :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscriber found')
+    subscription = crud.validate_subscription(db, username, destination)
+    if subscription is False :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='no subscription found')
+    subscription = crud.get_subscription(db, username=username, destination=destination)
+    return subscription
+
 @app.patch("/subscribers/{username}/subscriptions/{destination}",
            status_code=status.HTTP_204_NO_CONTENT,
            tags=["Subscriptions"],

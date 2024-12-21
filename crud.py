@@ -1,12 +1,12 @@
 # from dataclasses import asdict
 
-from certifi import where
 from httpx import delete
 from sqlalchemy.orm import Session
 from sqlalchemy import insert, and_, delete, values, update
 import datetime
 import functions
 import config
+
 # Local imports
 import models
 import schemas
@@ -166,3 +166,19 @@ def delete_subscription(db: Session, username: str, destination: str) :
     db.execute(delete(models.Subscriptions).where(models.Subscriptions.username == username, models.Subscriptions.destination == destination))
     db.commit()
     return True
+
+def get_subscription(db: Session, username: str, destination: str) :
+    subscription = (
+        db.query(models.Subscriptions)
+        .with_entities(models.Subscriptions.username,
+                       models.Subscriptions.destination,
+                       models.Subscriptions.state,
+                       models.Subscriptions.active_period)
+        .filter(models.Subscriptions.username == username, models.Subscriptions.destination == destination)
+        .first()
+    )
+    subscription_data = subscription._asdict()
+    (subscription_data['start_date'],
+    subscription_data['end_date']) = functions.timerec_to_start_and_end_date(
+    subscription_data['active_period'])
+    return subscription_data
